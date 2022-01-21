@@ -8,21 +8,24 @@ module.exports = app => {
 
         try {
             existOrError(category.name, "Nome não informado!")
+            existOrError(category.parentId, "Categoria pai não informada!")
         } catch (msg) {
-            return res.send(400).send(msg)
+            return res.status(400).send(msg)
         }
 
-        if (category.id) {
+        if (category.id && category.id !== category.parentId) {
             app.db("categories")
                 .update(category)
                 .where({ id: category.id })
                 .then(_ => res.status(204).send())
                 .catch(err => res.status(500).send(err))
-        } else {
+        } else if (!category.id) {
             app.db("categories")
                 .insert(category)
                 .then(_ => res.status(204).send())
                 .catch(err => res.status(500).send(err))
+        } else {
+            res.status(400).send("Uma categoria não pode ser filha dela mesma!")
         }
     }
 
@@ -74,10 +77,23 @@ module.exports = app => {
         return categoriesWithPath
     }
 
-    const get = (req, res) => {
-        app.db("categories")
-            .then(categories => res.json(withPath(categories)))
-            .catch(err => res.status(500).send(err))
+    const limit = 3
+    const get = async (req, res) => {
+        if (req.query.page) {
+            const page = req.query.page || 1
+
+            const result = await app.db("categories").count("id").first() // pega a quantidade de registros da base
+            const count = result["count(`id`)"] // converte em int a quantidade retornada
+
+            app.db("categories")
+                .limit(limit).offset(page * limit - limit) // offset a entender
+                .then(categories => res.json({ categories: withPath(categories), quant: Math.ceil(count / limit) }))
+                .catch(err => res.status(500).send(err))
+        } else {
+            app.db('categories')
+                .then(categories => res.json(withPath(categories)))
+                .catch(err => res.status(500).send(err))
+        }
     }
 
     const getById = (req, res) => {

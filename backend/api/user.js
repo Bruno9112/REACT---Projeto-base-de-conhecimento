@@ -57,12 +57,27 @@ module.exports = app => {
         }
     }
 
-    const get = (req, res) => {
-        app.db("users")
-            .select("id", "name", "email", "admin")
-            .whereNull("deletedAt")
-            .then(users => res.json(users))
-            .catch(err => res.status(500).send(err))
+    const limit = 3
+    const get = async (req, res) => {
+        if (req.query.page) {
+            const page = req.query.page || 1
+
+            const result = await app.db("users").count("id").whereNull("deletedAt").first() // pega a quantidade de registros da base
+            const count = result["count(`id`)"] // converte em int a quantidade retornada
+
+            app.db("users")
+                .select("id", "name", "email", "admin")
+                .whereNull("deletedAt")
+                .limit(limit).offset(page * limit - limit)
+                .then(users => res.json({ users: users, quant: Math.ceil(count / limit) }))
+                .catch(err => res.status(500).send(err))
+        } else {
+            app.db("users")
+                .select("id", "name", "email", "admin")
+                .whereNull("deletedAt")
+                .then(users => res.json(users))
+                .catch(err => res.status(500).send(err))
+        }
     }
 
     const getById = (req, res) => {

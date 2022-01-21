@@ -2,33 +2,51 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { baseApiUrl, showError } from "../../global";
 import { defaultSucess } from "./msgs"
-import { Table, Form, Col, Row, Button } from "react-bootstrap"
-import { ToastContainer } from "react-toastify"
+import { Table, Form, Col, Row, Button, Pagination } from "react-bootstrap"
 import { FaPencilAlt, FaTrashAlt } from "react-icons/fa";
-import "./UserAdmin.css"
 
 export default props => {
+    const [usersPages, setUsersPages] = useState([])
 
-    const [users, setUsers] = useState([])
-    
+    const [page, setPage] = useState(1)
+    const [quant, setQuant] = useState(0)
+
+    const [identi, setIdenti] = useState("")
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
+    const [admin, setAdmin] = useState(false)
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirm] = useState("")
     const [buttonState, setButtonState] = useState("save")
-    
-    const [user, setUser] = useState({})
+
+    useEffect(() => {
+        loadUsersPages()
+    }, [page])
+
+    function loadUsersPages() {
+        console.log("Pagina: " + page)
+        const url = `${baseApiUrl}/users?page=${page}`
+        axios.get(url).then(res => {
+            setUsersPages(res.data.users)
+            setQuant(res.data.quant)
+        })
+    }
+
+    function paginationItens() {
+        let items = [];
+        for (let num = 1; num <= quant; num++) {
+            items.push(
+                <Pagination.Item onClick={e => setPage(parseInt(e.target.text))} key={num} active={num === page}>{num}</Pagination.Item>
+            )
+        }
+        return (items)
+    }
 
     function save() {
-    
-        setUser({name: name, email: email, password: password, confirmPassword: confirmPassword})
+        const user = { name: name, email: email, password: password, confirmPassword: confirmPassword, admin: admin }
 
-        console.log(user)
-
-        const method = user.id ? "put" : "post"
-        const id = user.id ? `/${user.id}` : ""
-
-        console.log(method, id)
+        const method = identi ? "put" : "post"
+        const id = identi ? `/${identi}` : ""
 
         axios[method](`${baseApiUrl}/users${id}`, user)
             .then(() => {
@@ -39,7 +57,7 @@ export default props => {
     }
 
     function remove() {
-        const id = user.id
+        const id = identi
         axios.delete(`${baseApiUrl}/users/${id}`)
             .then(() => {
                 defaultSucess()
@@ -49,31 +67,22 @@ export default props => {
     }
 
     function reset() {
+        setIdenti("")
         setButtonState("save")
         setName("")
         setEmail("")
         setPassword("")
         setConfirm("")
-        loadUsers()
+        setAdmin(false)
+        loadUsersPages()
     }
 
-    function loadUser(user, mode = "save"){
+    function loadUser(user, mode = "save") {
         setButtonState(mode)
-        setUser({...user})
         setName(user.name)
         setEmail(user.email)
-        console.log(user)
-    }
-
-    useEffect(() => {
-        loadUsers()
-    }, [])
-
-    function loadUsers() {
-        const url = `${baseApiUrl}/users`
-        axios.get(url).then(res => {
-            setUsers(res.data)
-        })
+        setIdenti(user.id)
+        setAdmin(user.admin)
     }
 
     function renderHead() {
@@ -88,32 +97,31 @@ export default props => {
         )
     }
 
-    function renderAction(user) {
-        return (
-            <td className="tableaction">
-                <Button variant="warning" onClick={() => loadUser(user)}><FaPencilAlt color="green"/></Button>
-                <Button variant="danger" onClick={() => loadUser(user, "remove")}><FaTrashAlt color="white" /></Button>
-            </td>
-        )
-    }
-
     function renderBody() {
-        return users.map(user => {
+        return usersPages.map(user => {
             return (
                 <tr key={user.id}>
                     <td>{user.id}</td>
                     <td>{user.name}</td>
                     <td>{user.email}</td>
-                    <td>{user.admin == 1 ? "Sim" : "Não"}</td>
+                    <td>{user.admin === 1 ? "Sim" : "Não"}</td>
                     {renderAction(user)}
                 </tr>
             )
         })
     }
 
+    function renderAction(user) {
+        return (
+            <td>
+                <Button variant="warning" onClick={() => loadUser(user)}><FaPencilAlt color="black" /></Button>
+                <Button variant="danger" className="actionButton" onClick={() => loadUser(user, "remove")}><FaTrashAlt color="white" /></Button>
+            </td>
+        )
+    }
+
     return (
         <div className="user-admin">
-            <ToastContainer/>
             <Form>
                 <Row>
                     <Col md="6" sm="12">
@@ -129,26 +137,31 @@ export default props => {
                         </Form.Group>
                     </Col>
                 </Row>
-                <Form.Check type="checkbox" label="Adminstrador" id="user-admin" className="mb-3 mt-3" />
-                { buttonState === "save" ? 
-                <Row>
-                    <Col md="6" sm="12">
-                        <Form.Group>
-                            <Form.Label>Senha</Form.Label>
-                            <Form.Control id="user-password" type="password" onChange={e => setPassword(e.target.value)} value={password} placeholder="Informe a Senha do Usuário..." required />
-                        </Form.Group>
-                    </Col>
-                    <Col md="6" sm="12">
-                        <Form.Group>
-                            <Form.Label>Confirmar Senha</Form.Label>
-                            <Form.Control id="user-password-confirm" type="password" onChange={e => setConfirm(e.target.value)} value={confirmPassword} placeholder="Confirme a Senha do usuário..." required />
-                        </Form.Group>
-                    </Col>
-                </Row> : false
+                {buttonState === "save" ?
+                    <>
+                        <Form.Check type="checkbox" label="Administrador" id="user-admin" className="mb-3 mt-3" onChange={e => setAdmin(e.target.checked)} checked={admin} />
+                        <Row>
+                            <Col md="6" sm="12">
+                                <Form.Group>
+                                    <Form.Label>Senha</Form.Label>
+                                    <Form.Control id="user-password" type="password" onChange={e => setPassword(e.target.value)} value={password} placeholder="Informe a Senha do Usuário..." required readOnly={identi != ""} />
+                                </Form.Group>
+                            </Col>
+                            <Col md="6" sm="12">
+                                <Form.Group >
+                                    <Form.Label>Confirmar Senha</Form.Label>
+                                    <Form.Control id="user-password-confirm" type="password" onChange={e => setConfirm(e.target.value)} value={confirmPassword} placeholder="Confirme a Senha do usuário..." required readOnly={identi != ""} />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                    </> : false
                 }
-                <div className="buttons">
+
+                <Pagination className="mt-3">{paginationItens()}</Pagination>
+
+                <div className="mt-3 mb-3">
                     {
-                        buttonState === "save" ? <Button onClick={() =>save()} variant="primary">Salvar</Button> :
+                        buttonState === "save" ? <Button onClick={() => save()} variant="primary">Salvar</Button> :
                             <Button onClick={() => remove()} variant="danger">Excluir</Button>
                     }
                     <Button onClick={() => reset()} variant="secondary" className="ml-2" >Cancelar</Button>
