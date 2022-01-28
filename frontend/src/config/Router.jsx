@@ -1,18 +1,20 @@
 import React from "react";
-import { Route, Routes, useParams } from "react-router-dom"
+import { Route, Routes } from "react-router-dom"
 import Home from "../components/home/Home"
-import AdminPages from "../components/admin/AdminPages";
 import ArticlesByCategories from "../components/Articles/ArticlesByCategories";
+import ArticleById from "../components/Articles/ArticleById";
+import Auth from "../components/auth/Auth";
+import ProtectRoute from "./ProtectRoute";
 
-export default props => {
+export default props =>
+    <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/admin" element={<ProtectRoute />} />
+        <Route path="/categories/:id/articles" element={<ArticlesByCategories />} />
+        <Route path="/articles/:id" element={<ArticleById />} />
+        <Route path="/auth" element={<Auth />} />
+    </Routes>
 
-    const { id } = useParams()
 
-    return (
-        <Routes>
-            <Route path="/" element={<Home/>} />
-            <Route path="/admin" element={<AdminPages/>}/>
-            <Route path="/categories/:id/articles" element={<ArticlesByCategories id={id}/>}/>
-        </Routes>
-    )
-}
+
+

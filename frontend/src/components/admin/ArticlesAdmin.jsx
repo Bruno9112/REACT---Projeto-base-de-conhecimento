@@ -105,8 +105,6 @@ export default props => {
         loadArticles()
     }
 
-    
-
     function loadArticle(id, mode = "save") {
         const url = `${baseApiUrl}/articles/${id}`
         axios.get(url).then(res => {

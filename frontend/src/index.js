@@ -4,16 +4,17 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import store from "./config/store"
 import { Provider } from "react-redux";
-
+import { BrowserRouter } from "react-router-dom"
+import "./config/axios"
 import './index.css';
-
-require("axios").defaults.headers.common["Authorization"] = "bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwibmFtZSI6IkJydW5vIE1pa2FlbCBOYWdlbCIsImVtYWlsIjoiYnJ1bm9uYWdlbDkxMzJAZ21haWwuY29tIiwiYWRtaW4iOjEsImlhdCI6MTY0MjY4MjM3NSwiZXhwIjoxNjQyNzY4Nzc1fQ.lvIqhfk67uyjekMQ1doGfoYozaqUhwTXMG9qTJX8si4"
 
 ReactDOM.render(
   <React.StrictMode>
-    <Provider store={store}>
-      <App />
-    </Provider>
+    <BrowserRouter>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </BrowserRouter>
   </React.StrictMode>,
   document.getElementById('root')
 );

@@ -1,5 +1,6 @@
 import { defaultError, successToaste } from "./components/admin/msgs"
 
+export const userKey = "__knowledge_+user"
 export const baseApiUrl = "http://localhost:3001"
 
 export function showError(e) {

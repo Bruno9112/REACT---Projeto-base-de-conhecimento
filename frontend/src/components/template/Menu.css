@@ -6,3 +6,11 @@
     flex-direction: column;
     flex-wrap: wrap;
 }
+
+.MuiTreeItem-label {
+    color: white;
+}
+
+.MuiTreeItem-iconContainer {
+    color: white;
+}

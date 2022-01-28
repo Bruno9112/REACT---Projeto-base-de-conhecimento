@@ -26,7 +26,7 @@ module.exports = app => {
             name: user.name,
             email: user.email,
             admin: user.admin,
-            iat: now, //issued at 
+            iat: now, //issued at
             exp: now + (60 * 60 * 24)
         }
 
@@ -42,7 +42,7 @@ module.exports = app => {
             if(userData){
                 const token = jwt.decode(userData.token, process.env.SIGNIN_TOKEN)
                 if(new Date(token.exp * 1000) > new Date()) {
-                    return res.send()
+                    return res.send(true)
                 }
             }
         }catch(e){

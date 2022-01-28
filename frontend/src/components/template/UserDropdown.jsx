@@ -2,14 +2,27 @@ import React from "react";
 import Gravatar from "react-gravatar"
 import { BiChevronDown } from "react-icons/bi"
 import { FaCogs, FaSignOutAlt } from "react-icons/fa";
-import { userState } from "../../config/store"
-import { useSelector } from "react-redux"
-import { Link } from "react-router-dom"
+import { useSelector, useDispatch } from "react-redux"
+import { Link, useNavigate } from "react-router-dom"
+import { setUser, userState } from "../../config/store"
+import { userKey } from "../../global"
 import "./UserDropdown.css"
 
 export default props => {
 
-const {name, email} = useSelector(userState)
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+
+    const user = useSelector(userState)
+
+    const { name, email } = useSelector(userState)
+
+    function logout(e) {
+        e.preventDefault()
+        localStorage.removeItem(userKey)
+        dispatch(setUser(null))
+        navigate("/auth")
+    }
 
     return (
         <div className="user-dropdown">
@@ -21,8 +34,8 @@ const {name, email} = useSelector(userState)
                 <BiChevronDown size={25} />
             </div>
             <div className="user-dropdown-content">
-                <Link to="/admin"><FaCogs/> Administração</Link>
-                <a href=""><FaSignOutAlt/> Sair</a>
+                { user.admin == 1 ? <Link to="/admin" ><FaCogs /> Administração</Link> : false}
+                <a href="" onClick={e => logout(e)}><FaSignOutAlt /> Sair</a>
             </div>
         </div>
 
